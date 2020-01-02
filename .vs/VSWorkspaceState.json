@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\FFMpeg_Configuration",
+    "\\FFMpeg_SDL_Video",
+    "\\SDL_Audio",
+    "\\SDL_Video",
+    "\\Third_Party_Libraries\\SDL",
+    "\\Third_Party_Libraries\\SDL\\lib"
+  ],
+  "SelectedNode": "\\FFMpeg_SDL_Video\\ffmpeg_sdl_video.c",
+  "PreviewInSolutionExplorer": false
+}
