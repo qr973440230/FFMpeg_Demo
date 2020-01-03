@@ -50,7 +50,7 @@ static int open_codec_context(AVCodecContext** dec_ctx,
 	return 0;
 }
 
-int main() {
+int main(int argc,char * argv[]) {
 
 	// FFMpeg Init
 	char* filePath = "test.mp4";
@@ -186,40 +186,22 @@ int main() {
 
 				frame->pts = frame->best_effort_timestamp;
 
-				// 按照YUV420P的格式输出到文件中
-				for (int i = 0; i < scale_frame->height; i++) {
-					fwrite(scale_frame->data[0] + i * scale_frame->linesize[0], 1,
-						(size_t)scale_frame->width, output);
-				}
+				SDL_UpdateTexture(texture, NULL, frame->data[0], frame->linesize[0]);
+				SDL_RenderClear(render);
+				SDL_RenderCopy(render, texture, NULL, &slr);
+				SDL_RenderPresent(render);
+				SDL_Delay(40);
 
-				for (int i = 0; i < scale_frame->height / 2; i++) {
-					fwrite(scale_frame->data[1] + i * scale_frame->linesize[1], 1,
-						(size_t)scale_frame->width / 2, output);
-				}
-
-				for (int i = 0; i < scale_frame->height / 2; i++) {
-					fwrite(scale_frame->data[2] + i * scale_frame->linesize[2], 1,
-						(size_t)scale_frame->width / 2, output);
-				}
-
-				av_frame_unref(video_frame);
+				av_frame_unref(frame);
 			}
 		}
 
 		av_packet_unref(&pkt);
-
-		SDL_UpdateTexture(texture, NULL, frame->data[0], frame->linesize[0]);
-
-		SDL_RenderClear(render);
-		SDL_RenderCopy(render, texture, NULL, &slr);
-		SDL_RenderPresent(render);
-
-		SDL_Delay(40);
 	}
 
 	SDL_Quit();
 
-	avcodec_free_context(&videoDecCtx);
+	avcodec_free_context(&videoCodecCtx);
 	avformat_close_input(&fmt_ctx);
 	av_frame_free(&frame);
 
