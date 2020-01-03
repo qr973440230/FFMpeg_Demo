@@ -18,4 +18,24 @@ target_link_libraries(FFMpeg_SDL_Video
 	SDL2
 	SDL2main
 )
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+add_custom_command(TARGET FFMpeg_SDL_Video POST_BUILD 
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${PROJECT_SOURCE_DIR}/Shared/x64"
+	$<TARGET_FILE_DIR:FFMpeg_SDL_Video>
+)
+else()
+add_custom_command(TARGET FFMpeg_SDL_Video POST_BUILD 
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${PROJECT_SOURCE_DIR}/Shared/x86"
+	$<TARGET_FILE_DIR:FFMpeg_SDL_Video>
+)
+endif()
+
+add_custom_command(TARGET FFMpeg_SDL_Video POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+	"${PROJECT_SOURCE_DIR}/Resources/test.mp4"
+	$<TARGET_FILE_DIR:FFMpeg_SDL_Video>
+)
 # TODO: 如有需要，请添加测试并安装目标。
