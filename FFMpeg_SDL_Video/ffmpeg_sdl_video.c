@@ -119,7 +119,7 @@ int main(int argc,char * argv[]) {
 	scaleFrame->format = AV_PIX_FMT_YUV420P;
 	scaleFrame->width = videoCodecCtx->width / 2;
 	scaleFrame->height = videoCodecCtx->height / 2;
-	ret = av_frame_get_buffer(scaleFrame, 32);
+	ret = av_frame_get_buffer(scaleFrame, 16);
 	if (ret < 0) {
 		printf("av_frame_get_buffer failure! Error: %s\n", av_err2str(ret));
 		return ret;
@@ -127,7 +127,7 @@ int main(int argc,char * argv[]) {
 
 	struct SwsContext* swsCtx = sws_getContext(videoCodecCtx->width, videoCodecCtx->height, 
 		videoCodecCtx->pix_fmt,
-		scaleFrame->width,scaleFrame->height,
+		scaleFrame->width, scaleFrame->height,
 		(enum AVPixelFormat)scaleFrame->format,
 		SWS_BILINEAR,
 		NULL, NULL, NULL);
@@ -142,8 +142,8 @@ int main(int argc,char * argv[]) {
 		return -1;
 	}
 
-	int screen_w = videoCodecCtx->width;
-	int screen_h = videoCodecCtx->height;
+	int screen_w = scaleFrame->width;
+	int screen_h = scaleFrame->height;
 
 	SDL_Window * window = SDL_CreateWindow("FFMpeg SDL Video", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
@@ -160,7 +160,6 @@ int main(int argc,char * argv[]) {
 		screen_w,screen_h);
 
 	// Loop
-
 	SDL_Rect slr;
 	slr.x = 0;
 	slr.y = 0;
@@ -186,7 +185,19 @@ int main(int argc,char * argv[]) {
 
 				frame->pts = frame->best_effort_timestamp;
 
-				SDL_UpdateTexture(texture, NULL, frame->data[0], frame->linesize[0]);
+				ret = av_frame_make_writable(scaleFrame);
+				if (ret < 0) {
+					printf("av_frame_make_writable failure! Error: %s\n", av_err2str(ret));
+					return -1;
+				}
+
+				sws_scale(swsCtx,
+					(const uint8_t* const*)frame->data, frame->linesize, 0, videoCodecCtx->height,
+					scaleFrame->data, scaleFrame->linesize);
+
+
+				SDL_UpdateTexture(texture, NULL, scaleFrame->data[0], scaleFrame->linesize[0]);
+
 				SDL_RenderClear(render);
 				SDL_RenderCopy(render, texture, NULL, &slr);
 				SDL_RenderPresent(render);
@@ -199,11 +210,45 @@ int main(int argc,char * argv[]) {
 		av_packet_unref(&pkt);
 	}
 
+	while (1) {
+		ret = avcodec_receive_frame(videoCodecCtx, frame);
+		if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+			break;
+		}
+		if (ret < 0) {
+			printf("avcodec_receive_frame failure! Error: %s\n", av_err2str(ret));
+			return -1;
+		}
+
+		frame->pts = frame->best_effort_timestamp;
+
+		ret = av_frame_make_writable(scaleFrame);
+		if (ret < 0) {
+			printf("av_frame_make_writable failure! Error: %s\n", av_err2str(ret));
+			return -1;
+		}
+
+		sws_scale(swsCtx,
+			(const uint8_t* const*)frame->data, frame->linesize, 0, videoCodecCtx->height,
+			scaleFrame->data, scaleFrame->linesize);
+
+		SDL_UpdateTexture(texture, NULL, scaleFrame->data[0], scaleFrame->linesize[0]);
+
+		SDL_RenderClear(render);
+		SDL_RenderCopy(render, texture, NULL, &slr);
+		SDL_RenderPresent(render);
+		SDL_Delay(40);
+
+		av_frame_unref(frame);
+	}
+
 	SDL_Quit();
 
+	sws_freeContext(swsCtx);
+	av_frame_free(&frame);
+	av_frame_free(&scaleFrame);
 	avcodec_free_context(&videoCodecCtx);
 	avformat_close_input(&fmt_ctx);
-	av_frame_free(&frame);
 
 	return 0;
 }
