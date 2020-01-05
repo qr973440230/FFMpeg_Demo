@@ -11,7 +11,8 @@ extern "C" {
 }
 #endif
 
-int main() {
-	printf("%s\n", avformat_configuration());
+int main(int argc,char * argv[]) {
+	av_log_set_level(AV_LOG_INFO);
+	av_log(NULL, AV_LOG_INFO, "%s", avformat_configuration());
 	return 0;
 }

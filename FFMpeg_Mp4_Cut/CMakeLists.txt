@@ -1,14 +1,11 @@
-﻿# CMakeList.txt: FFMpeg_Demo 的 CMake 项目，在此处包括源代码并定义
-# 项目特定的逻辑。
-#
-cmake_minimum_required (VERSION 3.8)
 
-set(TARGET_NAME FFMpeg_Version)
+cmake_minimum_required(VERSION 3.8)
 
-# 将源代码添加到此项目的可执行文件。
-add_executable (${TARGET_NAME} ffmpeg_version.c)
+set(TARGET_NAME FFMpeg_Mp4_Cut)
 
-target_link_libraries(${TARGET_NAME} 
+add_executable(${TARGET_NAME} ffmpeg_mp4_cut.c)
+
+target_link_libraries(${TARGET_NAME}
 	avcodec
 	avdevice
 	avfilter
@@ -32,4 +29,9 @@ add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
 	$<TARGET_FILE_DIR:${TARGET_NAME}>
 )
 endif()
-# TODO: 如有需要，请添加测试并安装目标。
+
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+	"${PROJECT_SOURCE_DIR}/Resources/test.mp4"
+	$<TARGET_FILE_DIR:${TARGET_NAME}>
+)

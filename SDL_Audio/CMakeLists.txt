@@ -3,25 +3,27 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-# 将源代码添加到此项目的可执行文件。
-add_executable (SDL_Audio "sdl_audio.c")
+set(TARGET_NAME SDL_Audio)
 
-target_link_libraries(SDL_Audio
+# 将源代码添加到此项目的可执行文件。
+add_executable (${TARGET_NAME} sdl_audio.c)
+
+target_link_libraries(${TARGET_NAME}
 	SDL2
 	SDL2main
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-add_custom_command(TARGET SDL_Audio POST_BUILD 
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${PROJECT_SOURCE_DIR}/Shared/x64"
-	$<TARGET_FILE_DIR:SDL_Audio>
+	$<TARGET_FILE_DIR:${TARGET_NAME}>
 )
 else()
-add_custom_command(TARGET SDL_Audio POST_BUILD 
+add_custom_command(TARGET ${TARGET_NAME}_Audio POST_BUILD 
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${PROJECT_SOURCE_DIR}/Shared/x86"
-	$<TARGET_FILE_DIR:SDL_Audio>
+	$<TARGET_FILE_DIR:${TARGET_NAME}>
 )
 endif()
 # TODO: 如有需要，请添加测试并安装目标。
