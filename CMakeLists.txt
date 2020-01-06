@@ -50,3 +50,5 @@ add_subdirectory("SDL_Audio")
 add_subdirectory("FFMpeg_SDL_Video")
 
 add_subdirectory("FFMpeg_SDL_Audio")
+
+add_subdirectory("FFMpeg_SDL_Player")
