@@ -22,23 +22,5 @@ target_link_libraries(${TARGET_NAME}
 	SDL2main
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	"${PROJECT_SOURCE_DIR}/Shared/x64"
-	$<TARGET_FILE_DIR:${TARGET_NAME}>
-)
-else()
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	"${PROJECT_SOURCE_DIR}/Shared/x86"
-	$<TARGET_FILE_DIR:${TARGET_NAME}>
-)
-endif()
+add_dependencies(${TARGET_NAME} copy_runtime)
 
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${PROJECT_SOURCE_DIR}/Resources/test.mp4"
-	$<TARGET_FILE_DIR:${TARGET_NAME}>
-)
-# TODO: 如有需要，请添加测试并安装目标。

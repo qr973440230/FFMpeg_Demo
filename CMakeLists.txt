@@ -5,21 +5,26 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("FFMpeg_Demo")
 
-include_directories(
-	"Third_Party_Libraries/FFMpeg/include"
-	"Third_Party_Libraries/SDL/include"
-)
+#设置exe 输出目录
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+#设置lib dll输出目录
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
+#设置include
+include_directories(include/ffmpeg include/sdl2)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-link_directories(
-	"Third_Party_Libraries/FFMpeg/lib/x64"
-	"Third_Party_Libraries/SDL/lib/x64"
-)
+    link_directories(lib/x64)
+    add_custom_target(copy_runtime ALL
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/shared/x64" "${CMAKE_BINARY_DIR}"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/resources" "${CMAKE_BINARY_DIR}"
+	)
 else()
-link_directories(
-	"Third_Party_Libraries/FFMpeg/lib/x86"
-	"Third_Party_Libraries/SDL/lib/x86"
-)
+    link_directories(lib/x86)
+    add_custom_target(copy_runtime ALL
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/shared/x86" "${CMAKE_BINARY_DIR}"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/resources" "${CMAKE_BINARY_DIR}"
+	)
 endif()
 
 # 包含子项目。
@@ -42,10 +47,6 @@ add_subdirectory("FFMpeg_Mp4_Cut")
 add_subdirectory("FFMpeg_Decoding")
 
 add_subdirectory("FFMpeg_Encoding")
-
-add_subdirectory("SDL_Video")
-
-add_subdirectory("SDL_Audio")
 
 add_subdirectory("FFMpeg_SDL_Video")
 

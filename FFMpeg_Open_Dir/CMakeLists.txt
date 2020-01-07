@@ -16,16 +16,6 @@ target_link_libraries(${TARGET_NAME}
 	swscale
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	"${PROJECT_SOURCE_DIR}/Shared/x64"
-	$<TARGET_FILE_DIR:${TARGET_NAME}>
-)
-else()
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	"${PROJECT_SOURCE_DIR}/Shared/x86"
-	$<TARGET_FILE_DIR:${TARGET_NAME}>
-)
-endif()
+
+add_dependencies(${TARGET_NAME} copy_runtime)
+
