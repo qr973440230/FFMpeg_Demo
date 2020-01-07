@@ -20,7 +20,7 @@ add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
 	$<TARGET_FILE_DIR:${TARGET_NAME}>
 )
 else()
-add_custom_command(TARGET ${TARGET_NAME}_Audio POST_BUILD 
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD 
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${PROJECT_SOURCE_DIR}/Shared/x86"
 	$<TARGET_FILE_DIR:${TARGET_NAME}>

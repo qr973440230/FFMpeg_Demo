@@ -10,7 +10,7 @@ extern "C" {
 #include "libavutil/imgutils.h"
 #include "SDL.h"
 #include "avpacket_queue.h"
-#include "video_demux.h"
+#include "video_decode.h"
 
 #ifdef __cplusplus
 }

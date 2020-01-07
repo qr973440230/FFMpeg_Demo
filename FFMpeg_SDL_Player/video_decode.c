@@ -1,4 +1,4 @@
-#include "video_demux.h"
+#include "video_decode.h"
 
 // ´ò¿ª½âÂëÆ÷
 int open_codec(AVFormatContext* fmt_ctx,enum AVMediaType type, AVCodecContext** codec_ctx, int* stream_index)
