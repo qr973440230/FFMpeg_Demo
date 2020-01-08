@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.8)
 set(TARGET_NAME FFMpeg_Version)
 
 # 将源代码添加到此项目的可执行文件。
-add_executable (${TARGET_NAME} ffmpeg_version.c)
+add_executable (${TARGET_NAME} ffmpeg_version.cpp)
 
 target_link_libraries(${TARGET_NAME} 
 	avcodec
@@ -18,7 +18,6 @@ target_link_libraries(${TARGET_NAME}
 	swresample
 	swscale
 )
-
 
 add_dependencies(${TARGET_NAME} copy_runtime)
 

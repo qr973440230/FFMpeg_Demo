@@ -1,7 +1,4 @@
-﻿// FFMpeg_Demo.cpp: 定义应用程序的入口点。
-//
-
-#include <stdio.h>
+﻿#include <cstdio>
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +11,7 @@ extern "C" {
 #endif
 
 int main(int argc,char * argv[]){
-	printf("%d", avcodec_version());
+	av_log_set_level(AV_LOG_INFO);
+	av_log(nullptr,AV_LOG_INFO,"%u",avcodec_version());
 	return 0;
 }

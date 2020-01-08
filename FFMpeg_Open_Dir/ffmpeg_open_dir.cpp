@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,23 +12,23 @@ extern "C" {
 
 
 int main(int argc, char* argv[]) {
-	AVIODirContext * avIODirCtx = NULL;
-	AVIODirEntry* avIODirEntity = NULL;
-	
-	av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_level(AV_LOG_INFO);
+
+	AVIODirContext * avIODirCtx = nullptr;
+	AVIODirEntry* avIODirEntity = nullptr;
 
 	int ret;
-	ret = avio_open_dir(&avIODirCtx, "./", NULL);
+	ret = avio_open_dir(&avIODirCtx, "./", nullptr);
 	if (ret < 0) {
 		// Windows 未实现该方法
-		av_log(NULL,AV_LOG_ERROR,"Cannot open dir! Error: %s\n",av_err2str(ret));
+		av_log(nullptr,AV_LOG_ERROR,"Cannot open dir!\n");
 		return ret;
 	}
 
-	while (1) {
+	while (true) {
 		ret = avio_read_dir(avIODirCtx, &avIODirEntity);
 		if (ret < 0) {
-			av_log(NULL, AV_LOG_ERROR, "Cannot open dir! Error: %s\n", av_err2str(ret));
+			av_log(nullptr, AV_LOG_ERROR, "Cannot open dir!\n");
 			avio_close_dir(&avIODirCtx); // 防止内存泄漏
 			return ret;
 		}
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 		if (!avIODirEntity)
 			break;
 		
-		av_log(NULL, AV_LOG_INFO, "name: %s size: %d", avIODirEntity->name, avIODirEntity->size);
+		av_log(nullptr, AV_LOG_INFO, "name: %s size: %lld", avIODirEntity->name, avIODirEntity->size);
 
 		avio_free_directory_entry(&avIODirEntity);
 	}
