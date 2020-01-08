@@ -15,20 +15,6 @@ extern "C" {
 }
 #endif
 
-#define REFRESH_EVENT (SDL_USEREVENT + 1)
-
-static bool isQuit = false;
-static int refresh_video(void * data){
-    while(!isQuit){
-        SDL_Event event;
-        event.type = REFRESH_EVENT;
-
-        SDL_PushEvent(&event);
-        SDL_Delay(40);
-    }
-}
-
-
 int main(int argc, char *argv[]) {
     int ret = 0;
     char *filePath = "test.mp4";
@@ -48,7 +34,6 @@ int main(int argc, char *argv[]) {
     SDL_Window *window = nullptr;
     SDL_Renderer *render = nullptr;
     SDL_Texture *texture = nullptr;
-    SDL_Thread * refresh_thread = nullptr;
 
     av_log_set_level(AV_LOG_INFO);
     ret = avformat_open_input(&fmt_ctx, filePath, nullptr, nullptr);
@@ -167,6 +152,7 @@ int main(int argc, char *argv[]) {
             while (true) {
                 ret = avcodec_receive_frame(video_codec_ctx, frame);
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                    ret = 0;
                     break;
                 }
 
@@ -204,50 +190,6 @@ int main(int argc, char *argv[]) {
         }
 
         av_packet_unref(&pkt);
-    }
-
-    SDL_Event sle;
-    while (true) {
-        SDL_WaitEvent(&sle);
-        if(sle.type == REFRESH_EVENT){
-            ret = avcodec_receive_frame(video_codec_ctx, frame);
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                break;
-            }
-
-            if (ret < 0) {
-                av_log(nullptr, AV_LOG_ERROR, "avcodec_receive_frame failure!\n");
-                goto ___end;
-            }
-
-            frame->pts = frame->best_effort_timestamp;
-
-            ret = av_frame_make_writable(scale_frame);
-            if (ret < 0) {
-                av_log(nullptr, AV_LOG_ERROR, "av_frame_make_writable failure!\n");
-                goto ___end;
-            }
-
-            sws_scale(video_sws_ctx,
-                      (const uint8_t *const *) frame->data, frame->linesize,
-                      0, video_codec_ctx->height,
-                      scale_frame->data, scale_frame->linesize);
-
-
-            SDL_UpdateYUVTexture(texture, nullptr,
-                                 scale_frame->data[0], scale_frame->linesize[0],
-                                 scale_frame->data[1], scale_frame->linesize[1],
-                                 scale_frame->data[2], scale_frame->linesize[2]);
-
-            SDL_RenderClear(render);
-            SDL_RenderCopy(render, texture, nullptr, &slr);
-            SDL_RenderPresent(render);
-
-            av_frame_unref(frame);
-        }else if(sle.type == SDL_QUIT){
-            isQuit = true;
-            break;
-        }
     }
 
     ___end:

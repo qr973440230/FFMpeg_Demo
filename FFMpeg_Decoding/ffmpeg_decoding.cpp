@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
     while (av_read_frame(fmt_ctx, &pkt) >= 0) {
         if (pkt.stream_index == video_stream_index) {
-            // ½âÂë
+            // send --- receive
             ret = avcodec_send_packet(video_codec_ctx, &pkt);
             if (ret < 0) {
                 av_log(nullptr, AV_LOG_ERROR, "avcodec_send_packet failure!\n");
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
 
-                // ½âÂëVideo
+                // decode Video
 
             } while (true);
 

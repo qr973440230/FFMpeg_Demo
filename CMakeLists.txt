@@ -32,8 +32,6 @@ add_subdirectory (FFMpeg_Version)
 
 add_subdirectory(FFMpeg_Configuration)
 
-add_subdirectory(FFMpeg_Open_Dir)
-
 add_subdirectory(FFMpeg_Meta_Info)
 
 add_subdirectory(FFMpeg_Common)

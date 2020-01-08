@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     // 3.copy all Stream
     unsigned int nb_streams = fmt_ctx->nb_streams;
-    for (int i = 0; i < nb_streams; i++) {
+    for (unsigned int i = 0; i < nb_streams; i++) {
         AVStream *out_stream;
         AVStream *in_stream;
         in_stream = fmt_ctx->streams[i];

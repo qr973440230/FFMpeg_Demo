@@ -35,9 +35,7 @@ int main(int argc, char *argv[]) {
         return ret;
     }
 
-    printf("--------File Information-----------\n");
     av_dump_format(fmt_ctx, 0, filePath, 0);
-    printf("----------------------------------\n");
 
     int video_stream_index = -1;
     AVCodecContext *video_codec_ctx = nullptr;
@@ -112,7 +110,7 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
-    if(!render){
+    if (!render) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateRenderer failure! Error: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         avcodec_free_context(&video_codec_ctx);
@@ -124,7 +122,7 @@ int main(int argc, char *argv[]) {
                                              SDL_TEXTUREACCESS_STREAMING,
                                              screen_w,
                                              screen_h);
-    if(!texture){
+    if (!texture) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateTexture failure! Error: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_DestroyRenderer(render);
@@ -144,7 +142,7 @@ int main(int argc, char *argv[]) {
         if (pkt.stream_index == video_stream_index) {
             ret = avcodec_send_packet(video_codec_ctx, &pkt);
             if (ret < 0) {
-                av_log(nullptr,AV_LOG_ERROR,"avcodec_send_packet failure!\n");
+                av_log(nullptr, AV_LOG_ERROR, "avcodec_send_packet failure!\n");
                 break;
             }
 
@@ -154,7 +152,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
                 if (ret < 0) {
-                    av_log(nullptr,AV_LOG_ERROR,"avcodec_receive_frame failure!\n");
+                    av_log(nullptr, AV_LOG_ERROR, "avcodec_receive_frame failure!\n");
                     sws_freeContext(video_sws_ctx);
                     av_frame_free(&frame);
                     av_frame_free(&scale_frame);
@@ -167,7 +165,7 @@ int main(int argc, char *argv[]) {
 
                 ret = av_frame_make_writable(scale_frame);
                 if (ret < 0) {
-                    av_log(nullptr,AV_LOG_ERROR,"av_frame_make_writable failure!\n");
+                    av_log(nullptr, AV_LOG_ERROR, "av_frame_make_writable failure!\n");
                     sws_freeContext(video_sws_ctx);
                     av_frame_free(&frame);
                     av_frame_free(&scale_frame);
@@ -206,7 +204,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         if (ret < 0) {
-            av_log(nullptr,AV_LOG_ERROR,"avcodec_receive_frame failure!\n");
+            av_log(nullptr, AV_LOG_ERROR, "avcodec_receive_frame failure!\n");
             sws_freeContext(video_sws_ctx);
             av_frame_free(&frame);
             av_frame_free(&scale_frame);
@@ -219,7 +217,7 @@ int main(int argc, char *argv[]) {
 
         ret = av_frame_make_writable(scale_frame);
         if (ret < 0) {
-            av_log(nullptr,AV_LOG_ERROR,"av_frame_make_writable failure!\n");
+            av_log(nullptr, AV_LOG_ERROR, "av_frame_make_writable failure!\n");
             sws_freeContext(video_sws_ctx);
             av_frame_free(&frame);
             av_frame_free(&scale_frame);
