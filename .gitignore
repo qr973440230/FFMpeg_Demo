@@ -20,9 +20,16 @@
 *.out
 *.app
 
+# VS2019
 out/
 
+# VsCode
 .vs/
+
+# Clion
 .idea/
 cmake-build-debug/
 cmake-build-release/
+cmake-build-minsizerel/
+cmake-build-relwithdebinfo
+
