@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.8)
 set(TARGET_NAME FFMpeg_SDL_Player)
 
 # 将源代码添加到此项目的可执行文件。
-add_executable(${TARGET_NAME} ffmpeg_sdl_player.cpp)
+add_executable(${TARGET_NAME} ffmpeg_sdl_player.cpp video_player.cpp video_player.h)
 
 target_link_libraries(${TARGET_NAME}
         avcodec
