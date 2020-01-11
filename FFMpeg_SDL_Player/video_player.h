@@ -14,6 +14,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 #include "ffmpeg_common.h"
 #include "packet_queue.h"
+#include "frame_queue.h"
 
 typedef struct VideoPlayer_TAG {
     const char *file_path;
@@ -29,6 +30,8 @@ typedef struct VideoPlayer_TAG {
     SwrContext *audio_swr_ctx;
     PacketQueue *video_pkt_queue;
     PacketQueue *audio_pkt_queue;
+    FrameQueue *video_frame_queue;
+    FrameQueue *audio_frame_queue;
 } VideoPlayerContext;
 
 int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, int height, AVPixelFormat fmt);

@@ -34,6 +34,8 @@ int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, 
     ret = open_codec(video_player_ctx->in_fmt_ctx,
                      AVMEDIA_TYPE_VIDEO,
                      &video_player_ctx->video_codec_ctx,
+                     nullptr,
+                     nullptr,
                      &video_player_ctx->video_stream_index);
     if (ret < 0) {
         av_log(nullptr, AV_LOG_INFO, "no video stream\n");
@@ -44,6 +46,8 @@ int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, 
     ret = open_codec(video_player_ctx->in_fmt_ctx,
                      AVMEDIA_TYPE_AUDIO,
                      &video_player_ctx->audio_codec_ctx,
+                     nullptr,
+                     nullptr,
                      &video_player_ctx->audio_stream_index);
     if (ret < 0) {
         av_log(nullptr, AV_LOG_INFO, "no audio stream\n");
@@ -72,11 +76,12 @@ int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, 
                                                          video_player_ctx->video_player_fmt,
                                                          SWS_BILINEAR,
                                                          nullptr, nullptr, nullptr);
-        video_player_ctx->video_pkt_queue = nullptr;
-        packet_queue_init(&video_player_ctx->video_pkt_queue);
-        if(!video_player_ctx->video_pkt_queue){
-            av_log(nullptr,AV_LOG_ERROR,"av_malloc failure\n");
+        if (packet_queue_init(&video_player_ctx->video_pkt_queue) < 0) {
+            av_log(nullptr, AV_LOG_ERROR, "packet_queue_init failure\n");
             return -1;
+        }
+        if (frame_queue_init(&video_player_ctx->video_frame_queue, 24, video_player_ctx->video_pkt_queue) < 0) {
+            av_log(nullptr, AV_LOG_ERROR, "frame_queue_init failure\n");
         }
     }
 
@@ -97,10 +102,12 @@ int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, 
             swr_init(video_player_ctx->audio_swr_ctx);
         }
 
-        video_player_ctx->audio_pkt_queue = nullptr;
-        packet_queue_init(&video_player_ctx->audio_pkt_queue);
-        if(!video_player_ctx->audio_pkt_queue){
-            av_log(nullptr,AV_LOG_ERROR,"av_malloc failure\n");
+        if (packet_queue_init(&video_player_ctx->audio_pkt_queue) < 0) {
+            av_log(nullptr, AV_LOG_ERROR, "packet_queue_init failure\n");
+            return -1;
+        }
+        if (frame_queue_init(&video_player_ctx->audio_frame_queue, 24, video_player_ctx->audio_pkt_queue) < 0) {
+            av_log(nullptr, AV_LOG_ERROR, "frame_queue_init failure\n");
             return -1;
         }
     }
@@ -110,26 +117,32 @@ int video_player_open(VideoPlayerContext **vp_ctx, const char *path, int width, 
 }
 
 void video_player_close(VideoPlayerContext *ctx) {
-    if(ctx->video_pkt_queue){
+    if (ctx->video_frame_queue) {
+        frame_queue_destroy(ctx->video_frame_queue);
+    }
+    if (ctx->video_pkt_queue) {
         packet_queue_destroy(ctx->video_pkt_queue);
     }
-    if(ctx->video_sws_ctx){
+    if (ctx->video_sws_ctx) {
         sws_freeContext(ctx->video_sws_ctx);
     }
-    if(ctx->video_codec_ctx){
+    if (ctx->video_codec_ctx) {
         avcodec_free_context(&ctx->video_codec_ctx);
     }
 
-    if(ctx->audio_pkt_queue){
+    if (ctx->audio_frame_queue) {
+        frame_queue_destroy(ctx->audio_frame_queue);
+    }
+    if (ctx->audio_pkt_queue) {
         packet_queue_destroy(ctx->audio_pkt_queue);
     }
-    if(ctx->audio_swr_ctx){
+    if (ctx->audio_swr_ctx) {
         swr_free(&ctx->audio_swr_ctx);
     }
-    if(ctx->audio_codec_ctx){
+    if (ctx->audio_codec_ctx) {
         avcodec_free_context(&ctx->audio_codec_ctx);
     }
-    if(ctx->in_fmt_ctx){
+    if (ctx->in_fmt_ctx) {
         avformat_free_context(ctx->in_fmt_ctx);
     }
 

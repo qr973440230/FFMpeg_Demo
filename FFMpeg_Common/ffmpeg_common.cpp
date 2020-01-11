@@ -1,23 +1,29 @@
 #include "ffmpeg_common.h"
 
 
-int open_codec(AVFormatContext *fmt_ctx, enum AVMediaType type, AVCodecContext **codec_ctx, int *stream_index) {
+int open_codec(AVFormatContext *fmt_ctx, enum AVMediaType type,
+               AVCodecContext **codec_ctx, AVCodec **codec,
+               AVStream **stream, int *stream_index) {
     int ret;
     int index;
+    AVStream *st;
+    AVCodec *cc;
+    AVCodecContext *ctx;
+
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, nullptr, 0);
     if (ret < 0) {
         av_log(nullptr, AV_LOG_ERROR, "av_find_best_stream failure! Type: %s\n", av_get_media_type_string(type));
         return ret;
     }
     index = ret;
-    AVStream *st = fmt_ctx->streams[index];
-    AVCodec *codec = avcodec_find_decoder(st->codecpar->codec_id);
-    if (!codec) {
+    st = fmt_ctx->streams[index];
+    cc = avcodec_find_decoder(st->codecpar->codec_id);
+    if (!cc) {
         av_log(nullptr, AV_LOG_ERROR, "avcodec_find_decoder failure! Codec Id: %d\n", st->codecpar->codec_id);
         return -1;
     }
 
-    AVCodecContext *ctx = avcodec_alloc_context3(codec);
+    ctx = avcodec_alloc_context3(cc);
     if (!ctx) {
         av_log(nullptr, AV_LOG_ERROR, "avcodec_alloc_context3 failure!\n");
         return -1;
@@ -30,7 +36,7 @@ int open_codec(AVFormatContext *fmt_ctx, enum AVMediaType type, AVCodecContext *
         return ret;
     }
 
-    ret = avcodec_open2(ctx, codec, nullptr);
+    ret = avcodec_open2(ctx, cc, nullptr);
     if (ret < 0) {
         avcodec_free_context(&ctx);
         av_log(nullptr, AV_LOG_ERROR, "avcodec_open2 failure!\n");
@@ -38,8 +44,18 @@ int open_codec(AVFormatContext *fmt_ctx, enum AVMediaType type, AVCodecContext *
     }
 
     // open success
-    *codec_ctx = ctx;
-    *stream_index = index;
+    if(codec_ctx){
+        *codec_ctx = ctx;
+    }
+    if(codec){
+        *codec = cc;
+    }
+    if(stream){
+        *stream = st;
+    }
+    if(stream_index){
+        *stream_index = index;
+    }
 
     return 0;
 }

@@ -12,49 +12,57 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "SDL.h"
 
-typedef struct{
+typedef struct {
     AVPacketList *first_pkt, *last_pkt;
     int nb_packets;
     int size;
+    int abort_request;
     SDL_mutex *mutex;
     SDL_cond *cond;
 } PacketQueue;
 
 /***
  * init queue
- * @param pq
+ * @param q
  * @return
  */
-__declspec(dllexport) int packet_queue_init(PacketQueue **pq);
+__declspec(dllexport) int packet_queue_init(PacketQueue **q);
 
 /***
  * destroy queue
- * @param pq
+ * @param q
  */
-__declspec(dllexport) void packet_queue_destroy(PacketQueue *pq);
+__declspec(dllexport) void packet_queue_destroy(PacketQueue *q);
+
+/***
+ * abort queue
+ * @param q
+ */
+__declspec(dllexport) void packet_queue_abort(PacketQueue *q);
 
 /***
  *
- * @param pq
+ * @param q
  * @param pkt
  * @param block
  * @return return 1 if success, 0 if !block && queue is empty,function while wait cond signal if block
  */
-__declspec(dllexport) int packet_queue_get(PacketQueue *pq, AVPacket *pkt, int block);
+__declspec(dllexport) int packet_queue_get(PacketQueue *q, AVPacket *pkt, int block);
 
 /***
  *
- * @param pq
+ * @param q
  * @param pkt
  * @return return 0 if success else < 0
  */
-__declspec(dllexport) int packet_queue_put(PacketQueue *pq, AVPacket *pkt);
+__declspec(dllexport) int packet_queue_put(PacketQueue *q, AVPacket *pkt);
 
+__declspec(dllexport) int packet_queue_put_null_pkt(PacketQueue *q, int stream_index);
 /***
  * clear queue
- * @param pq
+ * @param q
  */
-__declspec(dllexport) void packet_queue_clear(PacketQueue *pq);
+__declspec(dllexport) void packet_queue_clear(PacketQueue *q);
 
 
 #ifdef __cplusplus
