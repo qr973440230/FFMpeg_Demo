@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     int video_stream_index = -1;
     AVCodecContext *video_codec_ctx = nullptr;
-    ret = open_codec(fmt_ctx, AVMEDIA_TYPE_VIDEO, &video_codec_ctx, &video_stream_index);
+    ret = open_codec(fmt_ctx, AVMEDIA_TYPE_VIDEO, &video_codec_ctx, nullptr, nullptr, &video_stream_index);
     if (ret < 0) {
         avformat_close_input(&fmt_ctx);
         av_log(nullptr, AV_LOG_ERROR, "open_codec failure!\n");

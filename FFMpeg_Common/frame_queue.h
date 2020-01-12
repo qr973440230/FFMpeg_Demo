@@ -14,11 +14,11 @@ extern "C" {
 #include "packet_queue.h"
 
 
-typedef struct {
+typedef struct Frame{
     AVFrame *frame;
 } Frame;
 
-typedef struct {
+typedef struct FrameQueue{
     Frame *frames;
     PacketQueue * pkt_queue;
     unsigned int r_idx;

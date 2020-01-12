@@ -12,7 +12,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "SDL.h"
 
-typedef struct {
+typedef struct PacketQueue{
     AVPacketList *first_pkt, *last_pkt;
     int nb_packets;
     int size;

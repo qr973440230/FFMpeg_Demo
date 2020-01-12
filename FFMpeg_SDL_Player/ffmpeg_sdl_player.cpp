@@ -30,25 +30,14 @@ static int decode_video_worker(void *data) {
     AVPacket pkt;
     VideoPlayerContext *video_player_ctx;
     AVFrame *src_frame;
-    AVFrame *scale_frame;
-
 
     video_player_ctx = static_cast<VideoPlayerContext *>(data);
 
     src_frame = av_frame_alloc();
-    scale_frame = av_frame_alloc();
 
-    if (!src_frame || !scale_frame) {
+    if (!src_frame) {
         av_log(nullptr, AV_LOG_ERROR, "av_frame_alloc failure \n");
-        goto __end;
-    }
-
-    scale_frame->format = video_player_ctx->video_player_fmt;
-    scale_frame->width = video_player_ctx->video_player_width;
-    scale_frame->height = video_player_ctx->video_player_height;
-    ret = av_frame_get_buffer(scale_frame, 32);
-    if (ret < 0) {
-        av_log(nullptr, AV_LOG_ERROR, "av_frame_get_buffer failure!\n");
+        ret = -1;
         goto __end;
     }
 
@@ -79,18 +68,16 @@ static int decode_video_worker(void *data) {
                 goto __end;
             }
 
-            sws_scale(video_player_ctx->video_sws_ctx,
-                      (const uint8_t *const *) src_frame->data, src_frame->linesize,
-                      0, video_player_ctx->video_codec_ctx->height,
-                      scale_frame->data, scale_frame->linesize);
-
             Frame *f = frame_queue_peek_writable(video_player_ctx->video_frame_queue);
             if (!f) {
                 // abort
                 goto __end;
             }
-            av_frame_move_ref(f->frame, scale_frame);
+
+            av_frame_move_ref(f->frame, src_frame);
             frame_queue_push(video_player_ctx->video_frame_queue);
+
+            av_frame_unref(src_frame);
         }
 
         av_packet_unref(&pkt);
@@ -99,9 +86,6 @@ static int decode_video_worker(void *data) {
     __end:
     if (src_frame) {
         av_frame_free(&src_frame);
-    }
-    if (scale_frame) {
-        av_frame_free(&scale_frame);
     }
 
     return ret;
@@ -115,8 +99,9 @@ static int decode_video_worker(void *data) {
 static int decode_worker(void *data) {
     AVPacket pkt;
     SDL_Thread *decode_video_thread = nullptr;
+    VideoPlayerContext *video_player_ctx;
 
-    VideoPlayerContext *video_player_ctx = static_cast<VideoPlayerContext *>(data);
+    video_player_ctx = static_cast<VideoPlayerContext *>(data);
 
     av_init_packet(&pkt);
     pkt.data = nullptr;
@@ -143,8 +128,8 @@ int main(int argc, char *argv[]) {
     int ret = 0;
     char *file_path = "test.mp4";
 
-    int width = 640;
-    int height = 480;
+    int width = 200;
+    int height = 200;
     AVPixelFormat fmt = AV_PIX_FMT_YUV420P;
 
     SDL_Thread *decode_thread;
@@ -174,7 +159,7 @@ int main(int argc, char *argv[]) {
     window = SDL_CreateWindow("FFMpeg SDL Video",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
-                              width, height, 0);
+                              width, height, SDL_WINDOW_RESIZABLE);
     if (!window) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow failure! Error: %s\n", SDL_GetError());
         ret = -1;
@@ -218,6 +203,16 @@ int main(int argc, char *argv[]) {
         return 0;
     }, "refresh_video", nullptr);
 
+    AVFrame *scale_frame = av_frame_alloc();
+    scale_frame->width = video_player_ctx->video_player_width;
+    scale_frame->height = video_player_ctx->video_player_height;
+    scale_frame->format = video_player_ctx->video_player_fmt;
+    ret = av_frame_get_buffer(scale_frame, 32);
+    if (ret < 0) {
+        av_log(nullptr, AV_LOG_ERROR, "av_frame_get_buffer failure \n");
+        goto ___end;
+    }
+
     SDL_Event sle;
     while (true) {
         SDL_WaitEvent(&sle);
@@ -227,7 +222,14 @@ int main(int argc, char *argv[]) {
         } else if (sle.type == REFRESH_VIDEO) {
             Frame *f = frame_queue_peek_readable(video_player_ctx->video_frame_queue);
 
-            AVFrame *scale_frame = f->frame;
+            AVFrame *frame = f->frame;
+
+            sws_scale(video_player_ctx->video_sws_ctx,
+                      (const uint8_t *const *) frame->data, frame->linesize,
+                      0, video_player_ctx->video_codec_ctx->height,
+                      scale_frame->data, scale_frame->linesize);
+
+
             SDL_UpdateYUVTexture(texture, nullptr,
                                  scale_frame->data[0], scale_frame->linesize[0],
                                  scale_frame->data[1], scale_frame->linesize[1],
@@ -242,7 +244,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    SDL_WaitThread(decode_thread,nullptr);
+    SDL_WaitThread(decode_thread, nullptr);
 
     ___end:
     // clean sdl2
